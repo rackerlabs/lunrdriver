@@ -130,7 +130,7 @@ class LunrDriver(VolumeDriver):
             if e.code != 404:
                 raise
 
-    def create_export(self, context, volume):
+    def create_export(self, context, volume, connector=None):
         """Exports the volume. Can optionally return a Dictionary of changes
         to the volume object to be persisted."""
         pass
@@ -201,7 +201,7 @@ class LunrDriver(VolumeDriver):
         # TODO: recreate export if needed?
         pass
 
-    def initialize_connection(self, volume, connector):
+    def initialize_connection(self, volume, connector, initiator_data=None):
         """Create export and return connection info."""
         client = LunrClient(self.url, volume, logger=LOG)
         return initialize_connection(client, volume['id'], connector)
