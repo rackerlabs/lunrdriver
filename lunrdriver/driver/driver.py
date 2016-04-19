@@ -58,6 +58,7 @@ class LunrDriver(VolumeDriver):
         model_update = {}
         model_update_meta = {}
         affinity = None
+        maintenance_zone = None
         lunr_id = volume['id']
         if volume.get('volume_metadata'):
             for meta in volume.get('volume_metadata', []):
@@ -67,6 +68,8 @@ class LunrDriver(VolumeDriver):
                     affinity = "different_node:%s" % meta.value
                 if meta.key == 'different_rack':
                     affinity = "different_group:%s" % meta.value
+                if meta.key == 'maintenance_zone':
+                    maintenance_zone = meta.value
         try:
             # Try to get the volume type name, else use the default volume type
             volume_type_name = volume['volume_type']['name']
@@ -88,6 +91,8 @@ class LunrDriver(VolumeDriver):
             params['image_id'] = image_id
         if affinity:
             params['affinity'] = affinity
+        if maintenance_zone:
+            params['maintenance_zone'] = maintenance_zone
         migration_status = volume.get('migration_status', None)
         if migration_status and 'target' in migration_status:
             k, v = migration_status.split(':')

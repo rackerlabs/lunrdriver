@@ -171,6 +171,30 @@ class TestLunrDriver(DriverTestCase):
         self.assertEquals(update['metadata'], {'different_node': 'foo,bar,baz',
                                                'storage-node': 'nodeuuid'})
 
+    def test_create_volume_with_maintenance_zone(self):
+        MetaEntry = namedtuple('MetaEntry', ['key', 'value'])
+        meta = MetaEntry('maintenance_zone', 'foobar')
+        volume = {'name': 'vol1', 'size': 1, 'project_id': 100,
+                  'id': '123-456', 'volume_type': {'name': 'vtype'},
+                  'volume_metadata': [meta]}
+        def callback(req):
+            self.assertEquals(req.get_method(), 'PUT')
+            url = urlparse(req.get_full_url())
+            self.assertEquals(url.path, '/v1.0/100/volumes/%s' % volume['id'])
+            data = urldecode(url.query)
+            self.assertEquals(data['size'], '1')
+            self.assertEquals(data['maintenance_zone'], 'foobar')
+            self.assertEquals(data['volume_type_name'], 'vtype')
+        self.request_callback = callback
+        self.resp = [json.dumps({'size': 1, 'cinder_host': 'foo',
+                                 'node_id': 'nodeuuid'})]
+        d = driver.LunrDriver(configuration=self.configuration)
+        update = d.create_volume(volume)
+        self.assert_(self.request_callback.called)
+        self.assertEquals(update['host'], 'foo')
+        self.assertEquals(update['metadata'], {'maintenance_zone': 'foobar',
+                                               'storage-node': 'nodeuuid'})
+
     def test_create_volume_from_snapshot(self):
         volume = {'name': 'vol1', 'size': 5, 'project_id': 100,
                   'id': '123-456', 'volume_type': {'name': 'vtype'}}
