@@ -183,7 +183,7 @@ class TestLunrDriver(DriverTestCase):
             self.assertEquals(url.path, '/v1.0/100/volumes/%s' % volume['id'])
             data = urldecode(url.query)
             self.assertEquals(data['size'], '1')
-            self.assertEquals(data['maintenance_zone'], 'foobar')
+            self.assertEquals(data['zone'], 'foobar')
             self.assertEquals(data['volume_type_name'], 'vtype')
         self.request_callback = callback
         self.resp = [json.dumps({'size': 1, 'cinder_host': 'foo',

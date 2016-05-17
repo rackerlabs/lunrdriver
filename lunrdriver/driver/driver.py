@@ -92,7 +92,7 @@ class LunrDriver(VolumeDriver):
         if affinity:
             params['affinity'] = affinity
         if maintenance_zone:
-            params['maintenance_zone'] = maintenance_zone
+            params['zone'] = maintenance_zone
         migration_status = volume.get('migration_status', None)
         if migration_status and 'target' in migration_status:
             k, v = migration_status.split(':')
