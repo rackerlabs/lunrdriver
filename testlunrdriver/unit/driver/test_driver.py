@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import __builtin__
-setattr(__builtin__, '_', lambda x: x)
+from six.moves import builtins
+setattr(builtins, '_', lambda x: x)
 
 import unittest
 from collections import namedtuple

@@ -1,7 +1,7 @@
 import unittest
 
-import __builtin__
-setattr(__builtin__, '_', lambda x: x)
+from six.moves import builtins
+setattr(builtins, '_', lambda x: x)
 
 from six.moves import StringIO
 from cgi import parse_qsl
