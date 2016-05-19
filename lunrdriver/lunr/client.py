@@ -130,11 +130,11 @@ class LunrError(Exception):
         self.url = req.get_full_url()
         self.detail = "%s on %s " % (self.method, self.url)
 
-        if type(e) is socket.timeout:
+        if isinstance(e, socket.timeout):
             self.detail += "failed with socket timeout"
             self.reason = self.detail
 
-        if type(e) is HTTPError:
+        if isinstance(e, HTTPError):
             raw_body = ''.join(e.fp.read())
             self.reason = raw_body  # most basic reason
             try:
@@ -151,11 +151,11 @@ class LunrError(Exception):
             self.title = e.msg
             self.code = e.code
 
-        if type(e) is URLError:
+        if isinstance(e, URLError):
             self.detail += "failed with '%s'" % e.reason
             self.reason = e.reason
 
-        if type(e) is IOError:
+        if isinstance(e, IOError):
             self.detail += "failed with '%s'" % e
             self.reason = str(e)
 
