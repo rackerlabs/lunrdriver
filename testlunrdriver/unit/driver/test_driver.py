@@ -9,8 +9,8 @@ from datetime import datetime, timedelta
 import os
 import errno
 from StringIO import StringIO
-from urlparse import urlparse
-from urllib2 import HTTPError, URLError
+from six.moves.urllib.parse import urlparse
+from six.moves.urllib.error import URLError, HTTPError
 from cinder.exception import VolumeTypeNotFoundByName
 from cinder.volume import configuration as conf
 import json
@@ -706,7 +706,7 @@ class TestLunrDriver(DriverTestCase):
             OSError(
                 errno.ECONNREFUSED, os.strerror(errno.ECONNREFUSED)
             )
-        ) 
+        )
         self.resp = [err for i in range(3)]
         with patch(driver, 'sleep', no_sleep):
             d.check_for_setup_error()

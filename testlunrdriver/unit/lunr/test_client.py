@@ -15,7 +15,7 @@
 
 
 import unittest
-from urllib2 import URLError, HTTPError
+from six.moves.urllib.error import URLError, HTTPError
 from StringIO import StringIO
 import json
 

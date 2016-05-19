@@ -1,10 +1,10 @@
 import json
 import socket
-import urllib2
 
-from httplib import HTTPException, BadStatusLine
-from urllib import urlencode
-from urllib2 import Request, urlopen, URLError, HTTPError
+from six.moves.http_client import HTTPException, BadStatusLine
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.request import Request, urlopen
+from six.moves.urllib.error import URLError, HTTPError
 from webob import exc
 
 try:
@@ -119,7 +119,7 @@ class LunrTypeResource(LunrResource):
 
 class LunrError(Exception):
     # Catch IOError to handle uncaught SSL Errors
-    exceptions = (urllib2.URLError, HTTPException, urllib2.HTTPError, IOError)
+    exceptions = (URLError, HTTPException, HTTPError, IOError)
 
     title = exc.HTTPServiceUnavailable.title
     code = exc.HTTPServiceUnavailable.code
@@ -134,7 +134,7 @@ class LunrError(Exception):
             self.detail += "failed with socket timeout"
             self.reason = self.detail
 
-        if type(e) is urllib2.HTTPError:
+        if type(e) is HTTPError:
             raw_body = ''.join(e.fp.read())
             self.reason = raw_body  # most basic reason
             try:
@@ -151,7 +151,7 @@ class LunrError(Exception):
             self.title = e.msg
             self.code = e.code
 
-        if type(e) is urllib2.URLError:
+        if type(e) is URLError:
             self.detail += "failed with '%s'" % e.reason
             self.reason = e.reason
 
