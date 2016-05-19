@@ -112,15 +112,15 @@ class TestLunrClient(unittest.TestCase):
     def test_get_volume(self):
         c = client.LunrClient({'project_id': 'fake'})
         def volume_get(req):
-            self.assertEquals(req.get_method(), 'GET')
+            self.assertEqual(req.get_method(), 'GET')
             expected_path = 'http://127.0.0.1:8080/v1.0/fake/volumes/volid?'
-            self.assertEquals(req.get_full_url(), expected_path)
+            self.assertEqual(req.get_full_url(), expected_path)
             return MockResponse(stub_volume(account_id='fake', id='volid'))
         self.set_response(volume_get)
         resp = c.volumes.get('volid')
-        self.assert_(volume_get.called)
-        self.assertEquals(resp.body['id'], 'volid')
-        self.assertEquals(resp.body['account_id'], 'fake')
+        self.assertTrue(volume_get.called)
+        self.assertEqual(resp.body['id'], 'volid')
+        self.assertEqual(resp.body['account_id'], 'fake')
 
     def test_get_volume_error(self):
         c = client.LunrClient({'project_id': 'fake'})
@@ -129,39 +129,39 @@ class TestLunrClient(unittest.TestCase):
         self.set_response(url_error)
         with self.assertRaises(client.LunrError) as manager:
             c.volumes.get('volid')
-            self.assertEquals(manager.exception.code, 0)
-        self.assert_(url_error.called)
+            self.assertEqual(manager.exception.code, 0)
+        self.assertTrue(url_error.called)
         def http_error(req):
             raise stub_error(req, 503)
         self.set_response(http_error)
         with self.assertRaises(client.LunrError) as manager:
             c.volumes.get('volid')
-            self.assertEquals(manager.exception.code, 503)
-        self.assert_(http_error.called)
+            self.assertEqual(manager.exception.code, 503)
+        self.assertTrue(http_error.called)
 
     def test_export_delete(self):
         c = client.LunrClient({'project_id': 'fake'})
         def export_delete(req):
-            self.assertEquals(req.get_method(), 'DELETE')
+            self.assertEqual(req.get_method(), 'DELETE')
             expected_path = 'http://127.0.0.1:8080/v1.0/fake/volumes/' + \
                     'volid/export?'
-            self.assertEquals(req.get_full_url(), expected_path)
+            self.assertEqual(req.get_full_url(), expected_path)
             return MockResponse()
         self.set_response(export_delete)
         resp = c.exports.delete('volid')
-        self.assert_(export_delete.called)
+        self.assertTrue(export_delete.called)
 
     def test_export_delete_force(self):
         c = client.LunrClient({'project_id': 'fake'})
         def export_delete_force(req):
-            self.assertEquals(req.get_method(), 'DELETE')
+            self.assertEqual(req.get_method(), 'DELETE')
             expected_path = 'http://127.0.0.1:8080/v1.0/fake/volumes/' + \
                     'volid/export?force=True'
-            self.assertEquals(req.get_full_url(), expected_path)
+            self.assertEqual(req.get_full_url(), expected_path)
             return MockResponse()
         self.set_response(export_delete_force)
         resp = c.exports.delete('volid', force=True)
-        self.assert_(export_delete_force.called)
+        self.assertTrue(export_delete_force.called)
 
 
 if __name__ == "__main__":

@@ -76,24 +76,24 @@ class TestLunrDriver(DriverTestCase):
 
     def test_create_driver_instance(self):
         d = driver.LunrDriver(configuration=self.configuration)
-        self.assertEquals(d.url, d.configuration.lunr_api_endpoint)
+        self.assertEqual(d.url, d.configuration.lunr_api_endpoint)
 
     def test_create_volume(self):
         volume = {'name': 'vol1', 'size': 1, 'project_id': 100,
                   'id': '123-456', 'volume_type': {'name': 'vtype'}}
         def callback(req):
-            self.assertEquals(req.get_method(), 'PUT')
+            self.assertEqual(req.get_method(), 'PUT')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/100/volumes/%s' % volume['id'])
+            self.assertEqual(url.path, '/v1.0/100/volumes/%s' % volume['id'])
             data = urldecode(url.query)
-            self.assertEquals(data['size'], '1')
-            self.assertEquals(data['volume_type_name'], 'vtype')
+            self.assertEqual(data['size'], '1')
+            self.assertEqual(data['volume_type_name'], 'vtype')
         self.request_callback = callback
         self.resp = [json.dumps({'size': 1, 'cinder_host': 'foo'})]
         d = driver.LunrDriver(configuration=self.configuration)
         update = d.create_volume(volume)
-        self.assert_(self.request_callback.called)
-        self.assertEquals(update['host'], 'foo')
+        self.assertTrue(self.request_callback.called)
+        self.assertEqual(update['host'], 'foo')
 
     def test_create_volume_duplicate(self):
         volume = {'name': 'vol1', 'size': 1, 'project_id': 100,
@@ -102,15 +102,15 @@ class TestLunrDriver(DriverTestCase):
         def callback(req):
             # First call gets the 409
             if len(self.request_callback.called) == 1:
-                self.assertEquals(req.get_method(), 'PUT')
+                self.assertEqual(req.get_method(), 'PUT')
                 url = urlparse(req.get_full_url())
-                self.assertEquals(url.path, '/v1.0/100/volumes/%s' % volume['id'])
+                self.assertEqual(url.path, '/v1.0/100/volumes/%s' % volume['id'])
                 return
             # We need to capture the lunr_id from the retry
-            self.assertEquals(req.get_method(), 'PUT')
+            self.assertEqual(req.get_method(), 'PUT')
             url = urlparse(req.get_full_url())
             data = urldecode(url.query)
-            self.assertEquals(data['name'], '123-456')
+            self.assertEqual(data['name'], '123-456')
             # Lazy way to find the new id
             lunr_id.append(url.path[1+url.path.rfind('/'):])
         self.request_callback = callback
@@ -120,9 +120,9 @@ class TestLunrDriver(DriverTestCase):
         self.resp = [err, json.dumps({'size': 1, 'cinder_host': 'foo'})]
         d = driver.LunrDriver(configuration=self.configuration)
         update = d.create_volume(volume)
-        self.assertEquals(len(self.request_callback.called), 2)
-        self.assertEquals(1, len(lunr_id))
-        self.assertEquals(update['_name_id'], lunr_id[0])
+        self.assertEqual(len(self.request_callback.called), 2)
+        self.assertEqual(1, len(lunr_id))
+        self.assertEqual(update['_name_id'], lunr_id[0])
 
     def test_create_volume_with_meta(self):
         MetaEntry = namedtuple('MetaEntry', ['key', 'value'])
@@ -131,20 +131,20 @@ class TestLunrDriver(DriverTestCase):
                   'id': '123-456', 'volume_type': {'name': 'vtype'},
                   'volume_metadata': [meta]}
         def callback(req):
-            self.assertEquals(req.get_method(), 'PUT')
+            self.assertEqual(req.get_method(), 'PUT')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/100/volumes/%s' % volume['id'])
+            self.assertEqual(url.path, '/v1.0/100/volumes/%s' % volume['id'])
             data = urldecode(url.query)
-            self.assertEquals(data['size'], '1')
-            self.assertEquals(data['volume_type_name'], 'vtype')
+            self.assertEqual(data['size'], '1')
+            self.assertEqual(data['volume_type_name'], 'vtype')
         self.request_callback = callback
         self.resp = [json.dumps({'size': 1, 'cinder_host': 'foo',
                                  'node_id': 'nodeuuid'})]
         d = driver.LunrDriver(configuration=self.configuration)
         update = d.create_volume(volume)
-        self.assert_(self.request_callback.called)
-        self.assertEquals(update['host'], 'foo')
-        self.assertEquals(update['metadata'], {'foo': 'bar',
+        self.assertTrue(self.request_callback.called)
+        self.assertEqual(update['host'], 'foo')
+        self.assertEqual(update['metadata'], {'foo': 'bar',
                                                'storage-node': 'nodeuuid'})
 
     def test_create_volume_with_affinity(self):
@@ -154,21 +154,21 @@ class TestLunrDriver(DriverTestCase):
                   'id': '123-456', 'volume_type': {'name': 'vtype'},
                   'volume_metadata': [meta]}
         def callback(req):
-            self.assertEquals(req.get_method(), 'PUT')
+            self.assertEqual(req.get_method(), 'PUT')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/100/volumes/%s' % volume['id'])
+            self.assertEqual(url.path, '/v1.0/100/volumes/%s' % volume['id'])
             data = urldecode(url.query)
-            self.assertEquals(data['size'], '1')
-            self.assertEquals(data['affinity'], 'different_node:foo,bar,baz')
-            self.assertEquals(data['volume_type_name'], 'vtype')
+            self.assertEqual(data['size'], '1')
+            self.assertEqual(data['affinity'], 'different_node:foo,bar,baz')
+            self.assertEqual(data['volume_type_name'], 'vtype')
         self.request_callback = callback
         self.resp = [json.dumps({'size': 1, 'cinder_host': 'foo',
                                  'node_id': 'nodeuuid'})]
         d = driver.LunrDriver(configuration=self.configuration)
         update = d.create_volume(volume)
-        self.assert_(self.request_callback.called)
-        self.assertEquals(update['host'], 'foo')
-        self.assertEquals(update['metadata'], {'different_node': 'foo,bar,baz',
+        self.assertTrue(self.request_callback.called)
+        self.assertEqual(update['host'], 'foo')
+        self.assertEqual(update['metadata'], {'different_node': 'foo,bar,baz',
                                                'storage-node': 'nodeuuid'})
 
     def test_create_volume_with_maintenance_zone(self):
@@ -178,21 +178,21 @@ class TestLunrDriver(DriverTestCase):
                   'id': '123-456', 'volume_type': {'name': 'vtype'},
                   'volume_metadata': [meta]}
         def callback(req):
-            self.assertEquals(req.get_method(), 'PUT')
+            self.assertEqual(req.get_method(), 'PUT')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/100/volumes/%s' % volume['id'])
+            self.assertEqual(url.path, '/v1.0/100/volumes/%s' % volume['id'])
             data = urldecode(url.query)
-            self.assertEquals(data['size'], '1')
-            self.assertEquals(data['zone'], 'foobar')
-            self.assertEquals(data['volume_type_name'], 'vtype')
+            self.assertEqual(data['size'], '1')
+            self.assertEqual(data['zone'], 'foobar')
+            self.assertEqual(data['volume_type_name'], 'vtype')
         self.request_callback = callback
         self.resp = [json.dumps({'size': 1, 'cinder_host': 'foo',
                                  'node_id': 'nodeuuid'})]
         d = driver.LunrDriver(configuration=self.configuration)
         update = d.create_volume(volume)
-        self.assert_(self.request_callback.called)
-        self.assertEquals(update['host'], 'foo')
-        self.assertEquals(update['metadata'], {'maintenance_zone': 'foobar',
+        self.assertTrue(self.request_callback.called)
+        self.assertEqual(update['host'], 'foo')
+        self.assertEqual(update['metadata'], {'maintenance_zone': 'foobar',
                                                'storage-node': 'nodeuuid'})
 
     def test_create_volume_from_snapshot(self):
@@ -201,14 +201,14 @@ class TestLunrDriver(DriverTestCase):
         snapshot = {'name': 'backup1', 'id': '456-789'}
         def callback(req):
             if len(self.request_callback.called) > 1:
-                self.assertEquals(req.get_method(), 'GET')
+                self.assertEqual(req.get_method(), 'GET')
                 return
-            self.assertEquals(req.get_method(), 'PUT')
+            self.assertEqual(req.get_method(), 'PUT')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/100/volumes/%s' % '123-456')
+            self.assertEqual(url.path, '/v1.0/100/volumes/%s' % '123-456')
             data = urldecode(url.query)
-            self.assertEquals(data['volume_type_name'], 'vtype')
-            self.assertEquals(data['backup'], snapshot['id'])
+            self.assertEqual(data['volume_type_name'], 'vtype')
+            self.assertEqual(data['backup'], snapshot['id'])
         self.request_callback = callback
         building_status = json.dumps({
             'status': 'BUILDING',
@@ -221,8 +221,8 @@ class TestLunrDriver(DriverTestCase):
         d = driver.LunrDriver(configuration=self.configuration)
         with patch(client, 'sleep', no_sleep):
             update = d.create_volume_from_snapshot(volume, snapshot)
-        self.assertEquals(len(self.request_callback.called), 3)
-        self.assertEquals(update, {'size': 1, 'host': 'foo'})
+        self.assertEqual(len(self.request_callback.called), 3)
+        self.assertEqual(update, {'size': 1, 'host': 'foo'})
 
     def test_create_cloned_volume(self):
         volume = {'name': 'vol1', 'size': 5, 'project_id': 100,
@@ -231,14 +231,14 @@ class TestLunrDriver(DriverTestCase):
                   'id': '234-567', 'volume_type': {'name': 'vtype'}}
         def callback(req):
             if len(self.request_callback.called) > 1:
-                self.assertEquals(req.get_method(), 'GET')
+                self.assertEqual(req.get_method(), 'GET')
                 return
-            self.assertEquals(req.get_method(), 'PUT')
+            self.assertEqual(req.get_method(), 'PUT')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/100/volumes/%s' % volume['id'])
+            self.assertEqual(url.path, '/v1.0/100/volumes/%s' % volume['id'])
             data = urldecode(url.query)
-            self.assertEquals(data['volume_type_name'], 'vtype')
-            self.assertEquals(data['source_volume'], '234-567')
+            self.assertEqual(data['volume_type_name'], 'vtype')
+            self.assertEqual(data['source_volume'], '234-567')
         self.request_callback = callback
         building_status = json.dumps({
             'status': 'BUILDING',
@@ -250,7 +250,7 @@ class TestLunrDriver(DriverTestCase):
         d = driver.LunrDriver(configuration=self.configuration)
         with patch(client, 'sleep', no_sleep):
             d.create_cloned_volume(volume, source)
-        self.assertEquals(len(self.request_callback.called), 3)
+        self.assertEqual(len(self.request_callback.called), 3)
 
     def test_clone_image(self):
         volume = {'name': 'vol1', 'size': 5, 'project_id': 100,
@@ -259,13 +259,13 @@ class TestLunrDriver(DriverTestCase):
         image_meta = {'id': 'image_id_1'}
         def callback(req):
             if len(self.request_callback.called) > 1:
-                self.assertEquals(req.get_method(), 'GET')
+                self.assertEqual(req.get_method(), 'GET')
                 return
-            self.assertEquals(req.get_method(), 'PUT')
+            self.assertEqual(req.get_method(), 'PUT')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/100/volumes/%s' % volume['id'])
+            self.assertEqual(url.path, '/v1.0/100/volumes/%s' % volume['id'])
             data = urldecode(url.query)
-            self.assertEquals(data['image_id'], image_meta['id'])
+            self.assertEqual(data['image_id'], image_meta['id'])
         self.request_callback = callback
         building_status = json.dumps({
             'status': 'BUILDING',
@@ -278,7 +278,7 @@ class TestLunrDriver(DriverTestCase):
         with patch(client, 'sleep', no_sleep):
             d.clone_image('unused', volume, image_location, image_meta,
                           'image_service')
-        self.assertEquals(len(self.request_callback.called), 3)
+        self.assertEqual(len(self.request_callback.called), 3)
 
     def test_failed_volume_create(self):
         # TODO: resp should be URLError'y
@@ -287,20 +287,20 @@ class TestLunrDriver(DriverTestCase):
         volume = {'name': 'vol1', 'size': 1, 'project_id': 100,
                   'id': '234-567', 'volume_type': {'name': 'vtype'}}
         self.assertRaises(Exception, d.create_volume, volume)
-        self.assert_(self.request_callback.called)
+        self.assertTrue(self.request_callback.called)
 
     def test_delete_volume(self):
         volume = {'name': 'vol1', 'size': 1, 'project_id': 100,
                   'id': '345-678', 'volume_type': {'name': 'vtype'}}
         def callback(req):
-            self.assertEquals(req.get_method(), 'DELETE')
+            self.assertEqual(req.get_method(), 'DELETE')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/100/volumes/%s' % volume['id'])
+            self.assertEqual(url.path, '/v1.0/100/volumes/%s' % volume['id'])
         self.request_callback = callback
         self.resp = [json.dumps({'status': 'DELETING'})]
         d = driver.LunrDriver(configuration=self.configuration)
         d.delete_volume(volume)
-        self.assert_(self.request_callback.called)
+        self.assertTrue(self.request_callback.called)
 
     def test_failed_delete_connection_error(self):
         self.resp = URLError(OSError(errno.ECONNREFUSED,
@@ -309,7 +309,7 @@ class TestLunrDriver(DriverTestCase):
         volume = {'name': 'vol1', 'size': 1, 'project_id': 100,
                   'id': '456-789', 'volume_type': {'name': 'vtype'}}
         self.assertRaises(client.LunrError, d.delete_volume, volume)
-        self.assert_(self.request_callback.called)
+        self.assertTrue(self.request_callback.called)
 
     def test_failed_delete_server_error(self):
         # url, code, msg, hdrs, fp
@@ -319,7 +319,7 @@ class TestLunrDriver(DriverTestCase):
         volume = {'name': 'vol1', 'size': 1, 'project_id': 100,
                   'id': '456-789', 'volume_type': {'name': 'vtype'}}
         self.assertRaises(client.LunrError, d.delete_volume, volume)
-        self.assert_(self.request_callback.called)
+        self.assertTrue(self.request_callback.called)
 
     def test_success_delete_not_found(self):
         # url, code, msg, hdrs, fp
@@ -329,7 +329,7 @@ class TestLunrDriver(DriverTestCase):
         volume = {'name': 'vol1', 'size': 1, 'project_id': 100,
                   'id': '456-789', 'volume_type': {'name': 'vtype'}}
         d.delete_volume(volume)
-        self.assert_(self.request_callback.called)
+        self.assertTrue(self.request_callback.called)
 
     def test_success_delete_snapshot_not_found(self):
         # url, code, msg, hdrs, fp
@@ -338,7 +338,7 @@ class TestLunrDriver(DriverTestCase):
         d = driver.LunrDriver(configuration=self.configuration)
         snapshot = {'project_id': 100, 'id': 's456-789'}
         d.delete_snapshot(snapshot)
-        self.assert_(self.request_callback.called)
+        self.assertTrue(self.request_callback.called)
 
     def test_initialize_connection(self):
         volume = {'id': 1, 'name': 'vol1', 'project_id': 'dev'}
@@ -348,9 +348,9 @@ class TestLunrDriver(DriverTestCase):
             'target_name': 'iqn-vol1',
         })
         def callback(req):
-            self.assertEquals(req.get_method(), 'PUT')
+            self.assertEqual(req.get_method(), 'PUT')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path,
+            self.assertEqual(url.path,
                               '/v1.0/dev/volumes/%s/export' % volume['id'])
         self.request_callback = callback
         d = driver.LunrDriver(configuration=self.configuration)
@@ -360,7 +360,7 @@ class TestLunrDriver(DriverTestCase):
             connection_info = d.initialize_connection(volume, self.connector)
         finally:
             utils.socket.gethostbyname = _orig_gethostbyname
-        self.assert_(self.request_callback.called)
+        self.assertTrue(self.request_callback.called)
         expected = {
             'driver_volume_type': 'iscsi',
             'data': {
@@ -370,7 +370,7 @@ class TestLunrDriver(DriverTestCase):
                 'volume_id': 1,
             }
         }
-        self.assertEquals(connection_info, expected)
+        self.assertEqual(connection_info, expected)
 
     def test_target_portal_is_ip(self):
         volume = {'id': 1, 'name': 'vol1', 'project_id': 'dev'}
@@ -380,9 +380,9 @@ class TestLunrDriver(DriverTestCase):
             'target_name': 'iqn-vol1',
         })
         def callback(req):
-            self.assertEquals(req.get_method(), 'PUT')
+            self.assertEqual(req.get_method(), 'PUT')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path,
+            self.assertEqual(url.path,
                               '/v1.0/dev/volumes/%s/export' % volume['id'])
         self.request_callback = callback
         d = driver.LunrDriver(configuration=self.configuration)
@@ -394,7 +394,7 @@ class TestLunrDriver(DriverTestCase):
             connection_info = d.initialize_connection(volume, self.connector)
         finally:
             utils.socket.gethostbyname = _orig_gethostbyname
-        self.assert_(self.request_callback.called)
+        self.assertTrue(self.request_callback.called)
         expected = {
             'driver_volume_type': 'iscsi',
             'data': {
@@ -404,7 +404,7 @@ class TestLunrDriver(DriverTestCase):
                 'volume_id': 1,
             }
         }
-        self.assertEquals(connection_info, expected)
+        self.assertEqual(connection_info, expected)
 
     def test_gethostbyname_lookup_fails(self):
         volume = {'id': 1, 'name': 'vol1', 'project_id': 'dev'}
@@ -415,9 +415,9 @@ class TestLunrDriver(DriverTestCase):
             'target_name': 'iqn-vol1',
         })
         def callback(req):
-            self.assertEquals(req.get_method(), 'PUT')
+            self.assertEqual(req.get_method(), 'PUT')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path,
+            self.assertEqual(url.path,
                               '/v1.0/dev/volumes/%s/export' % volume['id'])
         self.request_callback = callback
         d = driver.LunrDriver(configuration=self.configuration)
@@ -429,7 +429,7 @@ class TestLunrDriver(DriverTestCase):
             connection_info = d.initialize_connection(volume, self.connector)
         finally:
             utils.socket.gethostbyname = _orig_gethostbyname
-        self.assert_(self.request_callback.called)
+        self.assertTrue(self.request_callback.called)
         expected = {
             'driver_volume_type': 'iscsi',
             'data': {
@@ -439,7 +439,7 @@ class TestLunrDriver(DriverTestCase):
                 'volume_id': 1,
             }
         }
-        self.assertEquals(connection_info, expected)
+        self.assertEqual(connection_info, expected)
 
     def test_create_snapshot_success(self):
         # args
@@ -470,21 +470,21 @@ class TestLunrDriver(DriverTestCase):
 
         # setup request verification stack
         def create_callback(req):
-            self.assertEquals(req.get_method(), 'PUT')
+            self.assertEqual(req.get_method(), 'PUT')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/dev/backups/0000-0000')
+            self.assertEqual(url.path, '/v1.0/dev/backups/0000-0000')
             data = urldecode(url.query)
-            self.assertEquals(data['volume_id'], '0000-0001')
+            self.assertEqual(data['volume_id'], '0000-0001')
 
         def saving_callback(req):
-            self.assertEquals(req.get_method(), 'GET')
+            self.assertEqual(req.get_method(), 'GET')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/dev/backups/0000-0000')
+            self.assertEqual(url.path, '/v1.0/dev/backups/0000-0000')
 
         def ready_callback(req):
-            self.assertEquals(req.get_method(), 'GET')
+            self.assertEqual(req.get_method(), 'GET')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/dev/backups/0000-0000')
+            self.assertEqual(url.path, '/v1.0/dev/backups/0000-0000')
 
         callbacks = [create_callback, saving_callback, ready_callback]
         def request_callback(req):
@@ -499,7 +499,7 @@ class TestLunrDriver(DriverTestCase):
         d.db = MockDB()
         with patch(client, 'sleep', no_sleep):
             d.create_snapshot(snapshot)
-        self.assertEquals(len(self.request_callback.called), 3)
+        self.assertEqual(len(self.request_callback.called), 3)
 
     def test_create_snapshot_errors(self):
         # args
@@ -530,21 +530,21 @@ class TestLunrDriver(DriverTestCase):
 
         # setup request verification stack
         def create_callback(req):
-            self.assertEquals(req.get_method(), 'PUT')
+            self.assertEqual(req.get_method(), 'PUT')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/dev/backups/0000-0000')
+            self.assertEqual(url.path, '/v1.0/dev/backups/0000-0000')
             data = urldecode(url.query)
-            self.assertEquals(data['volume_id'], '0000-0001')
+            self.assertEqual(data['volume_id'], '0000-0001')
 
         def saving_callback(req):
-            self.assertEquals(req.get_method(), 'GET')
+            self.assertEqual(req.get_method(), 'GET')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/dev/backups/0000-0000')
+            self.assertEqual(url.path, '/v1.0/dev/backups/0000-0000')
 
         def ready_callback(req):
-            self.assertEquals(req.get_method(), 'GET')
+            self.assertEqual(req.get_method(), 'GET')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/dev/backups/0000-0000')
+            self.assertEqual(url.path, '/v1.0/dev/backups/0000-0000')
 
         callbacks = [create_callback, saving_callback, ready_callback]
         def request_callback(req):
@@ -559,7 +559,7 @@ class TestLunrDriver(DriverTestCase):
         d.db = MockDB()
         with patch(client, 'sleep', no_sleep):
             self.assertRaises(client.StatusError, d.create_snapshot, snapshot)
-        self.assertEquals(len(self.request_callback.called), 3)
+        self.assertEqual(len(self.request_callback.called), 3)
 
     def test_delete_snapshot_success(self):
         # args
@@ -592,11 +592,11 @@ class TestLunrDriver(DriverTestCase):
 
         # setup request verification stack
         def delete_callback(req):
-            self.assertEquals(req.get_method(), 'DELETE')
+            self.assertEqual(req.get_method(), 'DELETE')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/dev/backups/0000-0000')
+            self.assertEqual(url.path, '/v1.0/dev/backups/0000-0000')
             data = urldecode(url.query)
-            self.assertEquals(data['volume_id'], '0000-0001')
+            self.assertEqual(data['volume_id'], '0000-0001')
 
         callbacks = [delete_callback]
         def request_callback(req):
@@ -606,7 +606,7 @@ class TestLunrDriver(DriverTestCase):
         d = driver.LunrDriver(configuration=self.configuration)
         with patch(client, 'sleep', no_sleep):
             d.delete_snapshot(snapshot)
-        self.assertEquals(len(self.request_callback.called), 3)
+        self.assertEqual(len(self.request_callback.called), 3)
 
     def test_check_for_setup_error(self):
         # setup mock response
@@ -629,9 +629,9 @@ class TestLunrDriver(DriverTestCase):
         self.resp = [json.dumps([vtype1, vtype2])]
         # setup verify request callback
         def request_callback(req):
-            self.assertEquals(req.get_method(), 'GET')
+            self.assertEqual(req.get_method(), 'GET')
             url = urlparse(req.get_full_url())
-            self.assertEquals(url.path, '/v1.0/admin/volume_types')
+            self.assertEqual(url.path, '/v1.0/admin/volume_types')
         self.request_callback = request_callback
         d = driver.LunrDriver(configuration=self.configuration)
         # mock cinder db call
@@ -647,8 +647,8 @@ class TestLunrDriver(DriverTestCase):
 
         with patch(driver, 'volume_types', mock_volume_type_api):
             d.check_for_setup_error()
-        self.assert_(self.request_callback.called)
-        self.assert_(mock_volume_type_api.types, ['vtype1'])
+        self.assertTrue(self.request_callback.called)
+        self.assertTrue(mock_volume_type_api.types, ['vtype1'])
 
     def test_volume_type_already_exists(self):
         # setup mock response
@@ -688,16 +688,16 @@ class TestLunrDriver(DriverTestCase):
         d = driver.LunrDriver(configuration=self.configuration)
         with patch(driver, 'volume_types', mock_volume_type_api):
             d.check_for_setup_error()
-            self.assert_(self.request_callback.called)
-            self.assert_(mock_volume_type_api.types, ['vtype1', 'vtype2'])
-            self.assert_(mock_volume_type_api.duplicate_create_types, ['vtype1'])
+            self.assertTrue(self.request_callback.called)
+            self.assertTrue(mock_volume_type_api.types, ['vtype1', 'vtype2'])
+            self.assertTrue(mock_volume_type_api.duplicate_create_types, ['vtype1'])
             # call again
             self.resp = json.dumps([vtype1, vtype2])
             d.check_for_setup_error()
-            self.assert_(mock_volume_type_api.types, ['vtype1', 'vtype2'])
+            self.assertTrue(mock_volume_type_api.types, ['vtype1', 'vtype2'])
             expected = ['vtype1',  # from first run
                        'vtype1', 'vtype2']  # second time both raise
-            self.assert_(mock_volume_type_api.duplicate_create_types, expected)
+            self.assertTrue(mock_volume_type_api.duplicate_create_types, expected)
 
     def test_check_for_setup_error_fails(self):
         d = driver.LunrDriver(configuration=self.configuration)
@@ -724,7 +724,7 @@ class TestLunrDriver(DriverTestCase):
         self.resp = [err, err, json.dumps([vtype])]
         with patch(driver, 'sleep', no_sleep):
             d.check_for_setup_error()
-            self.assert_('new_type' in self.volume_types.store)
+            self.assertTrue('new_type' in self.volume_types.store)
 
 
 if __name__ == "__main__":
