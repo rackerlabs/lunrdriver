@@ -14,6 +14,8 @@
 # limitations under the License.
 
 
+from six import string_types
+
 from cinder.volume.api import API as CinderAPI
 try:
     from cinder.i18n import _
@@ -44,7 +46,7 @@ class API(CinderAPI):
     def _is_lunr_volume_type(self, context, volume_type):
         if not volume_type:
             return False
-        if isinstance(volume_type, basestring):
+        if isinstance(volume_type, string_types):
             volume_type = self.db.volume_type_get(context, volume_type)
         return volume_type['name'] in CONF.lunr_volume_types
 

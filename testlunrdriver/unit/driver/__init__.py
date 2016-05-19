@@ -1,5 +1,6 @@
 import unittest
 
+from six import string_types
 from six.moves import builtins
 setattr(builtins, '_', lambda x: x)
 
@@ -59,7 +60,7 @@ class ClientTestCase(unittest.TestCase):
     @resp.setter
     def resp(self, resp=''):
         """Set next resp from urlopen"""
-        if isinstance(resp, basestring) or isinstance(resp, Exception):
+        if isinstance(resp, string_types) or isinstance(resp, Exception):
             resp = [resp]
         self._resp = (r for r in resp)
 
