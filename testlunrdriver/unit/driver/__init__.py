@@ -3,7 +3,7 @@ import unittest
 import __builtin__
 setattr(__builtin__, '_', lambda x: x)
 
-from StringIO import StringIO
+from six.moves import StringIO
 from cgi import parse_qsl
 from contextlib import contextmanager
 

@@ -16,7 +16,7 @@
 
 import unittest
 from six.moves.urllib.error import URLError, HTTPError
-from StringIO import StringIO
+from six.moves import StringIO
 import json
 
 from lunrdriver.lunr import client

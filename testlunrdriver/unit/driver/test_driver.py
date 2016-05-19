@@ -8,7 +8,7 @@ from collections import namedtuple
 from datetime import datetime, timedelta
 import os
 import errno
-from StringIO import StringIO
+from six.moves import StringIO
 from six.moves.urllib.parse import urlparse
 from six.moves.urllib.error import URLError, HTTPError
 from cinder.exception import VolumeTypeNotFoundByName
