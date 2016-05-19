@@ -16,7 +16,7 @@
 
 import socket
 
-from client import LunrClient
+from lunrdriver.lunr.client import LunrClient
 
 
 def resolve_hostname(target_portal):
@@ -67,4 +67,3 @@ def attach_volume(client, volume_id, instance_id, mountpoint):
 
 def detach_volume(client, volume_id):
     client.exports.update(volume_id, instance_id=None)
-

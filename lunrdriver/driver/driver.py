@@ -20,7 +20,7 @@ except ImportError:
     from cinder.openstack.common import log as logging
 
 from lunrdriver.lunr.client import LunrClient, LunrError
-from utils import initialize_connection
+from lunrdriver.driver.utils import initialize_connection
 
 
 lunr_opts = [

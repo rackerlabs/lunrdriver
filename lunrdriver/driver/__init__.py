@@ -1,1 +1,1 @@
-from driver import LunrDriver
+from lunrdriver.driver.driver import LunrDriver
