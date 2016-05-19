@@ -172,7 +172,7 @@ class LunrDriver(VolumeDriver):
             client = LunrClient(self.url, volume, logger=LOG)
             volume_id = self._lookup_volume_id(volume)
             client.volumes.delete(volume_id)
-        except LunrError, e:
+        except LunrError as e:
             # ignore Not Found on delete
             if e.code != 404:
                 raise
@@ -210,7 +210,7 @@ class LunrDriver(VolumeDriver):
             client.backups.delete(snapshot['id'])
             client.backups.wait_on_status(snapshot['id'],
                                           'DELETED', 'AUDITING')
-        except LunrError, e:
+        except LunrError as e:
             # ignore Not Found on delete_snapshot. Don't wait on status.
             if e.code == 404:
                 return

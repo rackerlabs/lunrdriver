@@ -57,7 +57,7 @@ class API(CinderAPI):
             client = LunrClient(CONF.lunr_api_endpoint,
                                 lunr_context, logger=LOG)
             resp = client.types.get(volume_type['name'])
-        except LunrError, e:
+        except LunrError as e:
             LOG.error(_('unable to fetch volume type from LunR: %s'),
                       volume_type)
             raise

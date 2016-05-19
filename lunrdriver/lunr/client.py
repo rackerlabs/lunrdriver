@@ -219,5 +219,5 @@ class LunrClient(object):
             self.logger.debug("%s on %s succeeded with %s" %
                 (req.get_method(), req.get_full_url(), resp.getcode()))
             return resp
-        except (HTTPError, URLError, HTTPException), e:
+        except (HTTPError, URLError, HTTPException) as e:
             raise LunrError(req, e)
