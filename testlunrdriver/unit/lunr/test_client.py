@@ -57,7 +57,7 @@ class MockUrlOpen(object):
     def get_next_resp(self):
         if not self._resp_iter:
             self._resp_iter = iter(self._responses)
-        return self._resp_iter.next()
+        return next(self._resp_iter)
 
     def __call__(self, req, *args, **kwargs):
         resp = self.get_next_resp()

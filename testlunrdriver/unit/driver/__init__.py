@@ -47,7 +47,7 @@ class ClientTestCase(unittest.TestCase):
     def resp(self):
         """Get test provided next resp for ulropen, and clear next resp"""
         try:
-            resp = self._resp.next()
+            resp = next(self._resp)
             return resp
         except AttributeError:
             return ''
