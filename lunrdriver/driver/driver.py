@@ -10,6 +10,9 @@ try:
 except ImportError:
     from oslo.config import cfg
 
+from oslo_utils import excutils
+from webob import exc
+
 from cinder import exception
 from cinder.volume.driver import VolumeDriver
 from cinder.volume import volume_types
@@ -268,7 +271,18 @@ class LunrDriver(VolumeDriver):
         client = LunrClient(self.url, volume, logger=LOG)
         initiator = connector.get('initiator')
         volume_id = self._lookup_volume_id(volume)
-        client.exports.delete(volume_id, force=force, initiator=initiator)
+        try:
+            client.exports.delete(volume_id, force=force, initiator=initiator)
+        except LunrError as e:
+            with excutils.save_and_reraise_exception() as ctxt:
+                # NOTE(buhman): the volume manager transforms all
+                # exceptions from terminate_connection to a generic
+                # driver exception. Because we don't consider
+                # attempting to delete a non-existing export as a
+                # failure, suppress the exception here
+                if e.code == exc.HTTPNotFound.code:
+                    ctxt.reraise = False
+                    LOG.info(e)
 
     def attach_volume(self, context, volume, instance_uuid, host_name,
                       mountpoint):
