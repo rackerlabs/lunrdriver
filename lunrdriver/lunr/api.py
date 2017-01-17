@@ -101,6 +101,12 @@ class API(CinderAPI):
                 if self._is_lunr_volume_type(context,
                                              source_volume['volume_type_id']):
                     source_volume['volume_type_id'] = volume_type['id']
+            if metadata:
+                if all (k in metadata for k in ("different_node",
+                                                "different_rack")):
+                    msg = _("Cannot specify both different_node "
+                            "and different_rack metadata keys")
+                    raise exception.InvalidInput(reason=msg)
 
         kwargs = {}
         if snapshot is not None:
