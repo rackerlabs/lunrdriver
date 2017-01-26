@@ -123,7 +123,7 @@ class LunrRPC(object):
         try:
             resp = LunrClient(volume, logger=LOG).volumes.create(
                 volume['id'], **params)
-        except LunrError, e:
+        except LunrError as e:
             LOG.debug('error creating volume %s', volume['id'])
             # Don't leave an error'd volume around, the raise here
             # will notify the caller of the error (See Github Issue #343)
@@ -155,7 +155,7 @@ class LunrRPC(object):
         volume = db.volume_get(context, volume_id)
         try:
             LunrClient(volume, logger=LOG).volumes.delete(volume['id'])
-        except LunrError, e:
+        except LunrError as e:
             # ignore Not Found on delete
             if e.code == 404:
                 LOG.debug(_("volume %s: already deleted"),
@@ -196,7 +196,7 @@ class LunrRPC(object):
         }
         try:
             client.backups.create(snapshot['id'], **params)
-        except LunrError, e:
+        except LunrError as e:
             LOG.debug(_('error creating snapshot %s'), snapshot_id)
             # Don't leave an error'd snapshot around, the raise here
             # will notify the caller of the error (See Github Issue #322)
@@ -230,7 +230,7 @@ class LunrRPC(object):
         client = LunrClient(snapshot, logger=LOG)
         try:
             client.backups.delete(snapshot['id'])
-        except LunrError, e:
+        except LunrError as e:
             # ignore Not Found on delete_snapshot. Don't wait on status.
             if e.code == 404:
                 db.snapshot_destroy(context, snapshot['id'])

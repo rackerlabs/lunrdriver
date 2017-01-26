@@ -1,10 +1,10 @@
 import json
 import socket
-import urllib2
 
-from httplib import HTTPException, BadStatusLine
-from urllib import urlencode
-from urllib2 import Request, urlopen, URLError, HTTPError
+from six.moves.http_client import HTTPException, BadStatusLine
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.request import Request, urlopen
+from six.moves.urllib.error import URLError, HTTPError
 from webob import exc
 
 try:
@@ -119,7 +119,7 @@ class LunrTypeResource(LunrResource):
 
 class LunrError(Exception):
     # Catch IOError to handle uncaught SSL Errors
-    exceptions = (urllib2.URLError, HTTPException, urllib2.HTTPError, IOError)
+    exceptions = (URLError, HTTPException, HTTPError, IOError)
 
     title = exc.HTTPServiceUnavailable.title
     code = exc.HTTPServiceUnavailable.code
@@ -130,11 +130,11 @@ class LunrError(Exception):
         self.url = req.get_full_url()
         self.detail = "%s on %s " % (self.method, self.url)
 
-        if type(e) is socket.timeout:
+        if isinstance(e, socket.timeout):
             self.detail += "failed with socket timeout"
             self.reason = self.detail
 
-        if type(e) is urllib2.HTTPError:
+        if isinstance(e, HTTPError):
             raw_body = ''.join(e.fp.read())
             self.reason = raw_body  # most basic reason
             try:
@@ -151,11 +151,11 @@ class LunrError(Exception):
             self.title = e.msg
             self.code = e.code
 
-        if type(e) is urllib2.URLError:
+        if isinstance(e, URLError):
             self.detail += "failed with '%s'" % e.reason
             self.reason = e.reason
 
-        if type(e) is IOError:
+        if isinstance(e, IOError):
             self.detail += "failed with '%s'" % e
             self.reason = str(e)
 
@@ -219,5 +219,5 @@ class LunrClient(object):
             self.logger.debug("%s on %s succeeded with %s" %
                 (req.get_method(), req.get_full_url(), resp.getcode()))
             return resp
-        except (HTTPError, URLError, HTTPException), e:
+        except (HTTPError, URLError, HTTPException) as e:
             raise LunrError(req, e)

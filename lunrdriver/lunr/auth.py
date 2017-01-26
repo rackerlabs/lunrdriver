@@ -16,7 +16,8 @@
 
 import json
 import time
-import urllib2
+from six.moves.urllib.request import Request, urlopen
+from six.moves.urllib.error import HTTPError
 from webob.exc import HTTPUnauthorized, HTTPServiceUnavailable
 
 try:
@@ -79,18 +80,18 @@ class RackAuth(object):
                 headers['X-Auth-Token'] = self.admin_token
             req_path = self.admin_url + path
             LOG.debug('req_path: %s - headers: %s' % (req_path, headers))
-            req = urllib2.Request(req_path, headers=headers, data=body)
+            req = Request(req_path, headers=headers, data=body)
             req.get_method = lambda *args: method
             try:
-                resp = urllib2.urlopen(req)
+                resp = urlopen(req)
                 return json.loads(resp.read())
-            except urllib2.HTTPError, e:
+            except HTTPError as e:
                 if e.code == 401:
                     self._admin_token = None
                 elif e.code == 404 and self._admin_token:
                     # 404 means invalid token, no retry
                     raise
-            except Exception, e:
+            except Exception as e:
                 pass
             if attempt >= attempts:
                 raise
@@ -126,7 +127,7 @@ class RackAuth(object):
         path = '/v2.0/tokens/%s?belongsTo=%s' % (token, account)
         try:
             token_info = self._auth_request(path)
-        except urllib2.HTTPError, e:
+        except HTTPError as e:
             if e.code == 404:
                 raise InvalidUserToken('token not found')
             else:
@@ -173,7 +174,7 @@ class RackAuth(object):
         try:
             LOG.debug('Validate token')
             token_info = self.get_token_info(token, account)
-        except InvalidUserToken, e:
+        except InvalidUserToken as e:
             LOG.info('Invalid token (%s)' % e)
             return HTTPUnauthorized()(environ, start_response)
         except Exception:

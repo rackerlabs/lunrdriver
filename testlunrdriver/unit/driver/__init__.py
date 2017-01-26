@@ -1,9 +1,10 @@
 import unittest
 
-import __builtin__
-setattr(__builtin__, '_', lambda x: x)
+from six import string_types
+from six.moves import builtins
+setattr(builtins, '_', lambda x: x)
 
-from StringIO import StringIO
+from six.moves import StringIO
 from cgi import parse_qsl
 from contextlib import contextmanager
 
@@ -46,7 +47,7 @@ class ClientTestCase(unittest.TestCase):
     def resp(self):
         """Get test provided next resp for ulropen, and clear next resp"""
         try:
-            resp = self._resp.next()
+            resp = next(self._resp)
             return resp
         except AttributeError:
             return ''
@@ -59,7 +60,7 @@ class ClientTestCase(unittest.TestCase):
     @resp.setter
     def resp(self, resp=''):
         """Set next resp from urlopen"""
-        if isinstance(resp, basestring) or isinstance(resp, Exception):
+        if isinstance(resp, string_types) or isinstance(resp, Exception):
             resp = [resp]
         self._resp = (r for r in resp)
 
