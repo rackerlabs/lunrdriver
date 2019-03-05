@@ -16,9 +16,10 @@
 
 try:
     from oslo_config import cfg
+    from oslo_config.cfg import DuplicateOptError
 except ImportError:
     from oslo.config import cfg
-
+    from oslo.config.cfg import DuplicateOptError
 
 lunr_opts = [
     cfg.StrOpt('lunr_api_endpoint', default='http://127.0.0.1:8080/v1.0',
@@ -39,11 +40,16 @@ CONF.register_opts(lunr_opts)
 # authtoken middleware
 keystone_authtoken_opts = [
     cfg.StrOpt('auth_uri',
-               default=None,
+               default='http://127.0.0.1:5000/v2.0/',
                # FIXME(dolph): should be default='http://127.0.0.1:5000/v2.0/',
                # or (depending on client support) an unversioned, publicly
                # accessible identity endpoint (see bug 1207517)
                help='Complete public Identity API endpoint.'),
 ]
 
-CONF.register_opts(keystone_authtoken_opts, group='keystone_authtoken')
+try:
+    # When loading V2 Cinder API this registration happens twice causing
+    # DuplicateOptError , here we are simply ignoring the exception
+    CONF.register_opts(keystone_authtoken_opts, group='keystone_authtoken')
+except DuplicateOptError as e:
+    pass
