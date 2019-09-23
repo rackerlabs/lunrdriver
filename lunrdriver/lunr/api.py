@@ -21,6 +21,7 @@ except ImportError:
     pass
 
 from cinder import exception
+from oslo_concurrency import lockutils
 try:
     from oslo_log import log as logging
 except ImportError:
@@ -35,6 +36,12 @@ LOG = logging.getLogger('cinder.lunr.api')
 
 class SnapshotConflict(exception.Invalid):
     message = _("Existing snapshot operation on volume %(volume_id)s in "
+            "progress, please retry.")
+    code = 409
+
+
+class CloneConflict(exception.Invalid):
+    message = _("Existing cloning operation on volume %(volume_id)s in "
             "progress, please retry.")
     code = 409
 
@@ -98,6 +105,7 @@ class API(CinderAPI):
                                              snapshot['volume_type_id']):
                     snapshot['volume_type_id'] = volume_type['id']
             if source_volume:
+                # validate if source is in use
                 if self._is_lunr_volume_type(context,
                                              source_volume['volume_type_id']):
                     source_volume['volume_type_id'] = volume_type['id']
@@ -134,6 +142,18 @@ class API(CinderAPI):
         if source_cg is not None:
             kwargs['source_cg'] = source_cg
 
+        if source_volume is not None:
+            LOG.info("Finding on going operations on source volume %s."
+                     % source_volume)
+            siblings = self.db.snapshot_get_all_for_volume(context,
+                                                           source_volume["id"])
+            in_progess_snapshots = [snapshot for snapshot in siblings if
+                                   snapshot['status'] == 'creating']
+
+            if in_progess_snapshots:
+                raise SnapshotConflict(reason="Snapshot conflict",
+                                 volume_id=source_volume["id"])
+            self._check_clone_conflict(context, volume_id=source_volume["id"])
         return super(API, self).create(context, size, name, description,
                                        **kwargs)
 
@@ -152,6 +172,8 @@ class API(CinderAPI):
         # This is a stand in for Lunr's 409 conflict on a volume performing
         # multiple snapshot operations. It doesn't work in all cases,
         # but is better than nothing.
+        LOG.info("Checking for conflicted snapshots operation for volume %s "
+                 % volume['id'])
         if not self._is_lunr_volume_type(context, volume['volume_type_id']):
             return
 
@@ -161,10 +183,28 @@ class API(CinderAPI):
                 raise SnapshotConflict(reason="Snapshot conflict",
                                        volume_id=volume['id'])
 
+    def _check_clone_conflict(self, context, volume_id):
+        # fetch cloning in progress
+        LOG.info("Checking for conflicted snapshots operation for volume %s "
+                 % volume_id)
+        clones = self.get_all(context, marker=None, limit=None,
+                                          sort_keys=['created_at'],
+                                          sort_dirs=['desc'],
+                                          filters={"source_volid":
+                                                     volume_id},
+                                          viewable_admin_meta=True)
+        in_progress_clones = [clone for clone in clones if clone.status == \
+                              'creating']
+        if in_progress_clones:
+            raise CloneConflict(reason="Clone conflict",
+                                volume_id=volume_id)
+
     def _create_snapshot(self, context, volume, name, description, force=False,
                          metadata=None, cgsnapshot_id=None):
         if not force:
             self._check_snapshot_conflict(context, volume)
+        # if snapshot is being created lets block cloning
+        self._check_clone_conflict(context, volume_id=volume["id"])
         kwargs = {}
         kwargs['force'] = force
         if metadata is not None:
