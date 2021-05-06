@@ -46,6 +46,12 @@ class CloneConflict(exception.Invalid):
     code = 409
 
 
+class SnapshotQuotaExceedConflict(exception.Invalid):
+    message = _("Snapshot Quota Limit Exceeded for volume %(volume_id)s "
+            "Can't create More snapshots!")
+    code = 409
+
+
 class API(CinderAPI):
 
     def _is_lunr_volume_type(self, context, volume_type):
@@ -212,6 +218,23 @@ class API(CinderAPI):
         if cgsnapshot_id is not None:
             kwargs['cgsnapshot_id'] = cgsnapshot_id
         return super(API, self)._create_snapshot(context, volume, name,
+                                                 description, **kwargs)
+
+    def create_snapshot(self, context, volume, name, description,
+                    metadata=None, cgsnapshot_id=None):
+        siblings = self.db.snapshot_get_all_for_volume(context, volume['id'])
+        existing_snapshots = [snapshot for snapshot in siblings if not snapshot['status'] == 'auditing'
+                              or not snapshot['status'] == 'deleted']
+
+        if len(existing_snapshots) >= CONF.quota_snapshots:
+            raise SnapshotQuotaExceedConflict(reason="Snapshot per volumne quota limit exceeded ",
+                                              volume_id=volume["id"])
+        kwargs = {}
+        if metadata is not None:
+            kwargs['metadata'] = metadata
+        if cgsnapshot_id is not None:
+            kwargs['cgsnapshot_id'] = cgsnapshot_id
+        return super(API, self).create_snapshot(context, volume, name,
                                                  description, **kwargs)
 
     def delete_snapshot(self, context, snapshot, force=False):
