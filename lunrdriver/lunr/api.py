@@ -27,6 +27,7 @@ try:
 except ImportError:
     from cinder.openstack.common import log as logging
 from cinder.volume import volume_types
+import lunrdriver.lunr
 from lunrdriver.lunr.client import LunrClient, LunrError
 from lunrdriver.lunr.flags import CONF
 
@@ -46,6 +47,15 @@ class CloneConflict(exception.Invalid):
     code = 409
 
 
+<<<<<<< Updated upstream
+=======
+class SnapshotQuotaExceedConflict(exception.Invalid):
+    message = _("Snapshot Quota Limit Exceeded per volume %(volume_id)s "
+            "Can't create More snapshots!")
+    code = 413
+
+
+>>>>>>> Stashed changes
 class API(CinderAPI):
 
     def _is_lunr_volume_type(self, context, volume_type):
@@ -168,7 +178,7 @@ class API(CinderAPI):
 
         return super(API, self).delete(context, volume, force)
 
-    def _check_snapshot_conflict(self, context, volume):
+    def _check_snapshot_conflict(self, context, volume, siblings=None):
         # This is a stand in for Lunr's 409 conflict on a volume performing
         # multiple snapshot operations. It doesn't work in all cases,
         # but is better than nothing.
@@ -176,8 +186,8 @@ class API(CinderAPI):
                  % volume['id'])
         if not self._is_lunr_volume_type(context, volume['volume_type_id']):
             return
-
-        siblings = self.db.snapshot_get_all_for_volume(context, volume['id'])
+        if siblings is None:
+            siblings = self.db.snapshot_get_all_for_volume(context, volume['id'])
         for snap in siblings:
             if snap['status'] in ('creating', 'deleting'):
                 raise SnapshotConflict(reason="Snapshot conflict",
@@ -201,8 +211,15 @@ class API(CinderAPI):
 
     def _create_snapshot(self, context, volume, name, description, force=False,
                          metadata=None, cgsnapshot_id=None):
-        if not force:
-            self._check_snapshot_conflict(context, volume)
+
+        siblings = self.db.snapshot_get_all_for_volume(context, volume['id'])
+        if siblings:
+            if len(siblings) >= CONF.lunr_total_snapshots_hard_limit:
+                raise SnapshotQuotaExceedConflict(reason="Snapshot per volumne quota limit exceeded ",
+                                              volume_id=volume["id"])   
+            if not force:
+                self._check_snapshot_conflict(context, volume, siblings)
+
         # if snapshot is being created lets block cloning
         self._check_clone_conflict(context, volume_id=volume["id"])
         kwargs = {}
