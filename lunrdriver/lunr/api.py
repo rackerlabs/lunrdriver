@@ -47,15 +47,12 @@ class CloneConflict(exception.Invalid):
     code = 409
 
 
-<<<<<<< Updated upstream
-=======
 class SnapshotQuotaExceedConflict(exception.Invalid):
     message = _("Snapshot Quota Limit Exceeded per volume %(volume_id)s "
             "Can't create More snapshots!")
     code = 413
 
 
->>>>>>> Stashed changes
 class API(CinderAPI):
 
     def _is_lunr_volume_type(self, context, volume_type):
