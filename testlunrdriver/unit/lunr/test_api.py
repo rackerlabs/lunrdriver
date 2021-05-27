@@ -18,7 +18,6 @@ import cinder.volume
 from cinder.volume import configuration as conf
 
 import lunrdriver.lunr
-from lunrdriver.lunr import api as volume_api
 from lunrdriver.lunr.api import SnapshotQuotaExceedConflict
 
 

@@ -27,7 +27,6 @@ try:
 except ImportError:
     from cinder.openstack.common import log as logging
 from cinder.volume import volume_types
-import lunrdriver.lunr
 from lunrdriver.lunr.client import LunrClient, LunrError
 from lunrdriver.lunr.flags import CONF
 
