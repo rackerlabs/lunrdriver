@@ -174,7 +174,7 @@ class API(CinderAPI):
 
         return super(API, self).delete(context, volume, force)
 
-    def _check_snapshot_conflict(self, context, volume, siblings=None):
+    def _check_snapshot_conflict(self, context, volume, siblings):
         # This is a stand in for Lunr's 409 conflict on a volume performing
         # multiple snapshot operations. It doesn't work in all cases,
         # but is better than nothing.
@@ -182,8 +182,6 @@ class API(CinderAPI):
                  % volume['id'])
         if not self._is_lunr_volume_type(context, volume['volume_type_id']):
             return
-        if siblings is None:
-            siblings = self.db.snapshot_get_all_for_volume(context, volume['id'])
         for snap in siblings:
             if snap['status'] in ('creating', 'deleting'):
                 raise SnapshotConflict(reason="Snapshot conflict",
@@ -208,11 +206,15 @@ class API(CinderAPI):
     def _create_snapshot(self, context, volume, name, description, force=False,
                          metadata=None, cgsnapshot_id=None):
 
+        # if siblings exist , we make the checks to see if there is a snapshot
+        # conflict and if the snapshots created are within the hard limits defined
+        # per volume.
         siblings = self.db.snapshot_get_all_for_volume(context, volume['id'])
         if siblings:
             if len(siblings) >= CONF.lunr_total_snapshots_hard_limit:
-                raise SnapshotQuotaExceedConflict(reason="Snapshot per volumne quota limit exceeded ",
-                                              volume_id=volume["id"])   
+                raise SnapshotQuotaExceedConflict(reason="Snapshot per volumne \
+                                                          quota limit exceeded ",
+                                                  volume_id=volume["id"])
             if not force:
                 self._check_snapshot_conflict(context, volume, siblings)
 
@@ -237,5 +239,6 @@ class API(CinderAPI):
                                         {'status': 'error'})
             if not force:
                 volume = self.db.volume_get(context, snapshot['volume_id'])
-                self._check_snapshot_conflict(context, volume)
+                siblings = self.db.snapshot_get_all_for_volume(context, volume['id'])
+                self._check_snapshot_conflict(context, volume, siblings)
         return super(API, self).delete_snapshot(context, snapshot, force)
