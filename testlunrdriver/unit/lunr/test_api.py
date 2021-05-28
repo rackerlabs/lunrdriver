@@ -18,7 +18,7 @@ import cinder.volume
 from cinder.volume import configuration as conf
 
 import lunrdriver.lunr
-from lunrdriver.lunr.api import SnapshotQuotaExceedConflict
+from lunrdriver.lunr.api import SnapshotQuotaExceeded
 
 
 CONF = cfg.CONF
@@ -110,7 +110,7 @@ class VolumeSnapshotTest(BaseVolumeTestCase):
 		self.assertEquals("creating", str(snapshot_ref1.status))
 
 		# create snapshot 2
-		self.assertRaises(SnapshotQuotaExceedConflict, volume_api.create_snapshot,
+		self.assertRaises(SnapshotQuotaExceeded, volume_api.create_snapshot,
 						  self.context, volume, 'fake_name2', 'fake_description2')
 
 		# test tear down activities

@@ -46,10 +46,10 @@ class CloneConflict(exception.Invalid):
     code = 409
 
 
-class SnapshotQuotaExceedConflict(exception.Invalid):
+class SnapshotQuotaExceeded(exception.Invalid):
     message = _("Snapshot Quota Limit Exceeded per volume %(volume_id)s "
             "Can't create More snapshots!")
-    code = 413
+    code = 429
 
 
 class API(CinderAPI):
@@ -212,7 +212,7 @@ class API(CinderAPI):
         siblings = self.db.snapshot_get_all_for_volume(context, volume['id'])
         if siblings:
             if len(siblings) >= CONF.lunr_total_snapshots_hard_limit:
-                raise SnapshotQuotaExceedConflict(reason="Snapshot per volumne \
+                raise SnapshotQuotaExceeded(reason="Snapshot per volumne \
                                                           quota limit exceeded ",
                                                   volume_id=volume["id"])
             if not force:
