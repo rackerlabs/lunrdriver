@@ -29,6 +29,8 @@ lunr_opts = [
                 help='Disable create from source.'),
     cfg.BoolOpt('lunr_copy_image_enabled', default=True,
                 help='Disable create from image.'),
+    cfg.IntOpt('lunr_total_snapshots_hard_limit', default=500,
+            help='Hard limit on number of total snapshots per volume.'),
 ]
 
 CONF = cfg.CONF

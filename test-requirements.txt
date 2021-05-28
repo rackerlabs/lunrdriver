@@ -69,6 +69,7 @@ oslo.utils==3.4.0
 oslo.versionedobjects==1.4.0
 oslo.vmware==2.2.1
 osprofiler==1.0.0
+oslotest>=1.10.0
 paramiko==1.16.0
 Paste==2.0.2
 PasteDeploy==1.5.2
