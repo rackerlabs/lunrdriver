@@ -118,7 +118,7 @@ traceback2==1.4.0
 trollius==2.2.post1
 unicodecsv==0.14.1
 unittest2==1.1.0
-urllib3==1.14
+urllib3==1.26.5
 warlock==1.2.0
 WebOb==1.5.1
 wheel==0.26.0
