@@ -47,8 +47,8 @@ class CloneConflict(exception.Invalid):
 
 
 class SnapshotQuotaExceeded(exception.Invalid):
-    message = _("Snapshot Quota Limit Exceeded per volume %(volume_id)s "
-            "Can't create More snapshots!")
+    message = _("Snapshot quota limit exceeded per volume %(volume_id)s "
+            "Can't create more snapshots!")
     code = 429
 
 
