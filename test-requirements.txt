@@ -121,5 +121,5 @@ unittest2==1.1.0
 urllib3==1.14
 warlock==1.2.0
 WebOb==1.5.1
-wheel==0.26.0
+wheel==0.38.1
 wrapt==1.10.6
