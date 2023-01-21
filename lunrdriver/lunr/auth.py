@@ -16,7 +16,7 @@
 
 import json
 import time
-import urllib2
+import urllib2, ssl
 from webob.exc import HTTPUnauthorized, HTTPServiceUnavailable
 
 try:
@@ -82,7 +82,7 @@ class RackAuth(object):
             req = urllib2.Request(req_path, headers=headers, data=body)
             req.get_method = lambda *args: method
             try:
-                resp = urllib2.urlopen(req)
+                resp = urllib2.urlopen(req, context=ssl._create_unverified_context())
                 return json.loads(resp.read())
             except urllib2.HTTPError, e:
                 if e.code == 401:
