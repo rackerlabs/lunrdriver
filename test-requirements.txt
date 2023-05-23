@@ -98,7 +98,7 @@ python-swiftclient==2.7.0
 pytz==2015.7
 PyYAML==3.11
 repoze.lru==0.6
-requests==2.9.1
+requests==2.31.0
 retrying==1.3.3
 Routes==2.2
 rtslib-fb==2.1.58
